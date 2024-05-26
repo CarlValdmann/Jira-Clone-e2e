@@ -23,3 +23,4 @@ npx cypress run --browser=chrome
 ## Observe test run results in CI
 [![N|BuildStatus](https://iili.io/QOkZWQ.png)](https://freeimage.host/i/QOkZWQ)
 
+# Jira-Clone-e2e
