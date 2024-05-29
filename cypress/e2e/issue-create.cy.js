@@ -7,7 +7,7 @@ const issueType = '[data-testid="select:type"]';
 const issueTypeStory = '[data-testid="select-option:Story"]';
 const iconStory = '[data-testid="icon:story"]';
 const issueTypeBug = '[data-testid="select-option:Bug"]';
-const iconBug = '[data-testid="icon:Bug"]';
+const iconBug = '[data-testid="icon:bug"]';
 const issueTypeTask = '[data-testid="select-option:Task"]';
 const iconTask = '[data-testid="icon:task"]';
 const reporterDropdown = '[data-testid="select:reporterId"]';
@@ -24,6 +24,7 @@ const avatarLordGaben = '[data-testid="avatar:Lord Gaben"]';
 const avatarBabyYoda = '[data-testid="avatar:Baby Yoda"]';
 const errorMessage = '[data-testid="form-field:title"]';
 const priorityDropdown = '[data-testid="select:priority"]';
+const priorityHighest = '[data-testid="select-option:Highest"]';
 
 describe("Issue create", () => {
   beforeEach(() => {
@@ -112,5 +113,64 @@ describe("Issue create", () => {
       // Assert that correct error message is visible
       cy.get(errorMessage).should("contain", "This field is required");
     });
+  });
+
+  it.only("Should create a new issue with given information ", () => {
+    let description = "My bug description";
+    let title = "Bug";
+    let issueTypeNotTask = true;
+    let assigneePresent = true;
+
+    cy.get(createIssueModal).within(() => {
+      cy.get(description).type("My bug description");
+      cy.get(description).should("have.text", "My bug description");
+
+      cy.get(title).type("Bug");
+      cy.get(title).should("have.value", "Bug");
+
+      cy.get(issueType).click();
+      cy.get(issueTypeBug).wait(1000).trigger("mouseover").trigger("click");
+      cy.get(iconBug).should("be.visible");
+
+      cy.get(reporterDropdown).click();
+      cy.get(optionPickleRick).click();
+
+      cy.get(assigneeDropdown).click();
+      cy.get(optionLordGaben).click();
+
+      cy.get(priorityDropdown).click();
+      cy.get(priorityHighest).click();
+
+      cy.get(buttonCreateIssue).click();
+    });
+
+    cy.get(createIssueModal).should("not.exist");
+    cy.contains(creatingIssueSuccess).should("be.visible");
+
+    cy.reload();
+    cy.contains(creatingIssueSuccess).should("not.exist");
+
+    cy.get(listBackLog)
+      .should("be.visible")
+      .and("have.length", "1")
+      .within(() => {
+        cy.get(listIssues)
+          .should("have.length", "5")
+          .first()
+          .find("p")
+          .contains("Bug")
+          .siblings()
+          .within(() => {
+            cy.get(avatarLordGaben).should("be.visible");
+            cy.get(iconBug).should("be.visible");
+          });
+      });
+
+    cy.get(listBackLog)
+      .contains("Bug")
+      .within(() => {
+        cy.get(avatarLordGaben).should("be.visible");
+        cy.get(iconBug).should("be.visible");
+      });
   });
 });
