@@ -1,8 +1,8 @@
 import { faker } from "@faker-js/faker";
 
 const createIssueModal = '[data-testid="modal:issue-create"]';
-const description = ".ql-editor";
-const title = 'input[name="title"]';
+const descriptionInput = ".ql-editor";
+const titleInput = 'input[name="title"]';
 const issueType = '[data-testid="select:type"]';
 const issueTypeStory = '[data-testid="select-option:Story"]';
 const iconStory = '[data-testid="icon:story"]';
@@ -12,6 +12,7 @@ const issueTypeTask = '[data-testid="select-option:Task"]';
 const iconTask = '[data-testid="icon:task"]';
 const reporterDropdown = '[data-testid="select:reporterId"]';
 const assigneeDropdown = '[data-testid="form-field:userIds"]';
+const selectAssignee = '[data-testid="select:userIds]';
 const optionBabyYoda = '[data-testid="select-option:Baby Yoda"]';
 const optionPickleRick = '[data-testid="select-option:Pickle Rick"]';
 const optionLordGaben = '[data-testid="select-option:Lord Gaben"]';
@@ -25,6 +26,8 @@ const avatarBabyYoda = '[data-testid="avatar:Baby Yoda"]';
 const errorMessage = '[data-testid="form-field:title"]';
 const priorityDropdown = '[data-testid="select:priority"]';
 const priorityHighest = '[data-testid="select-option:Highest"]';
+const priorityLow = '[data-testid="select-option:Low"]';
+const priorityColorLow = "rgb(45, 135, 56)";
 
 describe("Issue create", () => {
   beforeEach(() => {
@@ -41,14 +44,14 @@ describe("Issue create", () => {
     // System finds modal for creating issue and does next steps inside of it
     cy.get(createIssueModal).within(() => {
       // Type value to description input field
-      cy.get(description).type("TEST_DESCRIPTION");
-      cy.get(description).should("have.text", "TEST_DESCRIPTION");
+      cy.get(descriptionInput).type("TEST_DESCRIPTION");
+      cy.get(descriptionInput).should("have.text", "TEST_DESCRIPTION");
 
       // Type value to title input field
       // Order of filling in the fields is first description, then title on purpose
       // Otherwise filling title first sometimes doesn't work due to web page implementation
-      cy.get(title).type("TEST_TITLE");
-      cy.get(title).should("have.value", "TEST_TITLE");
+      cy.get(titleInput).type("TEST_TITLE");
+      cy.get(titleInput).should("have.value", "TEST_TITLE");
 
       // Open issue type dropdown and choose Story
       cy.get(issueType).click();
@@ -115,18 +118,13 @@ describe("Issue create", () => {
     });
   });
 
-  it.only("Should create a new issue with given information ", () => {
-    let description = "My bug description";
-    let title = "Bug";
-    let issueTypeNotTask = true;
-    let assigneePresent = true;
-
+  it("Should create a new issue with given information ", () => {
     cy.get(createIssueModal).within(() => {
-      cy.get(description).type("My bug description");
-      cy.get(description).should("have.text", "My bug description");
+      cy.get(descriptionInput).type("My bug description");
+      cy.get(descriptionInput).should("have.text", "My bug description");
 
-      cy.get(title).type("Bug");
-      cy.get(title).should("have.value", "Bug");
+      cy.get(titleInput).type("Bug");
+      cy.get(titleInput).should("have.value", "Bug");
 
       cy.get(issueType).click();
       cy.get(issueTypeBug).wait(1000).trigger("mouseover").trigger("click");
@@ -174,3 +172,101 @@ describe("Issue create", () => {
       });
   });
 });
+
+it.only("Should create a new issue with random data and assert it's visible on the board ", () => {
+  let description = faker.lorem.words(5);
+  let title = faker.lorem.words(1);
+  let issueTypeNotTask = false;
+  let assigneeDropdown = false;
+
+  createNewIssue(
+    description,
+    title,
+    priorityLow,
+    optionBabyYoda,
+    assigneeDropdown,
+    issueTypeNotTask
+  );
+
+  verifyNewIssueOnBacklog(
+    title,
+    iconBug,
+    priorityLow,
+    priorityColorLow,
+    assigneeDropdown
+  );
+});
+
+function createNewIssue(
+  myDescription,
+  myTitle,
+  myPriority,
+  myReporter,
+  assigneePresent,
+  myAssignee,
+  issueTypeNotTask,
+  myIssueType,
+  myIssueIcon
+) {
+  cy.get(createIssueModal).within(() => {
+    cy.get(descriptionInput)
+      .type(myDescription)
+      .should("have.text", myDescription);
+    cy.get(titleInput).type(myTitle).should("have.value", myTitle);
+    cy.get(priorityDropdown).click();
+    cy.get(myPriority).wait(1000).trigger("mouseover").trigger("click");
+    cy.get(reporter).click();
+    cy.get(myReporter).click();
+    if (assigneePresent) {
+      cy.get(assigneeDropdown).click();
+      cy.get(myAssignee).click();
+    } else {
+      cy.get(selectAssignee).should("have.text", "Select");
+    }
+    if (issueTypeNotTask) {
+      cy.get(issueType).click();
+      cy.get(myIssueType).wait(1000).trigger("mouseover").trigger("click");
+      cy.get(myIssueIcon).should("be.visible");
+    } else {
+      cy.get(issueType).first().find("i").siblings().contains("Task");
+      cy.get(iconTask).scrollIntoView().should("be.visible");
+    }
+    cy.get(buttonCreateIssue).click();
+  });
+}
+
+function verifyNewIssueOnBacklog(
+  prevIssueTitle,
+  prevIssueTypeIcon,
+  prevPriorityIcon,
+  priorityLevelColor,
+  assigneePresent,
+  prevAssigneeAvatar
+) {
+  cy.get(createIssueModal).should("not.exist");
+  cy.contains("Issue has been successfully created.").should("be.visible");
+  cy.reload();
+  cy.contains("Issue has been successfully created.").should("not.exist");
+  cy.get(listBackLog)
+    .should("be.visible")
+    .and("have.length", "1")
+    .within(() => {
+      cy.get(listIssue)
+        .should("have.length", "5")
+        .first()
+        .find("p")
+        .contains(prevIssueTitle)
+        .siblings()
+        .within(() => {
+          cy.get(prevIssueTypeIcon).should("be.visible");
+          cy.get(prevPriorityIcon)
+            .should("be.visible")
+            .and("have.css", "color", priorityLevelColor);
+          if (assigneePresent) {
+            cy.get(prevAssigneeAvatar).should("be.visible");
+          } else {
+            cy.get(divBacklogAssigneeAvatar).should("not.be.visible");
+          }
+        });
+    });
+}
