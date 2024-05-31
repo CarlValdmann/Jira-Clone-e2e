@@ -172,109 +172,55 @@ describe("creating issues", () => {
       });
   });
 
-  it.only("Should create a new issue with random data and assert it's visible on the board ", () => {
-    let description = faker.lorem.words(5);
-    let title = faker.lorem.words(1);
-    let issueTypeNotTask = false;
-    let assigneePresent = false;
+  it("Should create a new issue with random data and assert it's visible on the board ", () => {
+    const randomTitle = faker.word.words(2);
+    const randomDescription = faker.word.words(5);
+    cy.get(createIssueModal).within(() => {
+      cy.get(descriptionInput).type(randomDescription);
+      cy.get(descriptionInput).should("have.text", randomDescription);
 
-    createNewIssue(
-      description,
-      title,
-      priorityLow,
-      optionBabyYoda,
-      assigneePresent,
-      null,
-      issueTypeNotTask,
-      null,
-      null
-    );
+      cy.get(titleInput).type(randomTitle);
+      cy.get(titleInput).should("have.value", randomTitle);
 
-    verifyNewIssueOnBacklog(
-      title,
-      iconTask,
-      priorityLow,
-      priorityColorLow,
-      assigneePresent,
-      null
-    );
-  });
-});
-
-function createNewIssue(
-  myDescription,
-  myTitle,
-  myPriority,
-  myReporter,
-  assigneePresent,
-  myAssignee,
-  issueTypeNotTask,
-  myIssueType,
-  myIssueIcon
-) {
-  cy.get(createIssueModal).within(() => {
-    cy.get(descriptionInput)
-      .type(myDescription)
-      .should("have.text", myDescription);
-    cy.get(titleInput).type(myTitle).should("have.value", myTitle);
-    cy.get(priorityDropdown).click();
-    cy.get(myPriority).wait(1000).trigger("mouseover").trigger("click");
-    cy.get(reporterDropdown).click();
-    cy.get(myReporter).click();
-    if (assigneePresent) {
-      cy.get(assigneeDropdown).click();
-      cy.get(myAssignee).click();
-    } else {
-      cy.get(selectAssignee).should("have.text", "Select");
-    }
-    if (issueTypeNotTask) {
       cy.get(issueType).click();
-      cy.get(myIssueType).wait(1000).trigger("mouseover").trigger("click");
-      cy.get(myIssueIcon).should("be.visible");
-    } else {
-      cy.get(issueType).first().find("i").siblings().contains("Task");
-      cy.get(iconTask).scrollIntoView().should("be.visible");
-    }
-    cy.get(buttonCreateIssue).click();
-  });
-}
+      cy.get(iconTask).should("be.visible");
 
-function verifyNewIssueOnBacklog(
-  prevIssueTitle,
-  prevIssueTypeIcon,
-  prevPriorityIcon,
-  priorityLevelColor,
-  assigneePresent,
-  prevAssigneeAvatar
-) {
-  cy.get(createIssueModal).should("not.exist");
-  cy.contains("Issue has been successfully created.").should("be.visible");
-  cy.reload();
-  cy.contains("Issue has been successfully created.").should("not.exist");
+      cy.get(reporterDropdown).click();
+      cy.get(optionBabyYoda).click();
 
-  // Wait for the backlog list to be visible
-  cy.get(listBackLog, { timeout: 20000 }).should("be.visible");
+      cy.get(priorityDropdown).click();
+      cy.get(priorityLow).click();
 
-  // Check if the backlog list contains any items
-  cy.get(listBackLog).should("exist").should("have.length", 1);
+      cy.get(buttonCreateIssue).click();
+    });
 
-  cy.get(listBackLog).within(() => {
+    cy.get(createIssueModal).should("not.exist");
+    cy.contains(creatingIssueSuccess).should("be.visible");
+
+    cy.reload();
+    cy.contains(creatingIssueSuccess).should("not.exist");
+
     cy.get(listBackLog)
-      .should("have.length.greaterThan", 0)
-      .first()
-      .find("p")
-      .contains(prevIssueTitle)
-      .siblings()
+      .should("be.visible")
+      .and("have.length", "1")
       .within(() => {
-        cy.get(prevIssueTypeIcon).should("be.visible");
-        cy.get(prevPriorityIcon)
-          .should("be.visible")
-          .and("have.css", "color", priorityLevelColor);
-        if (assigneePresent) {
-          cy.get(prevAssigneeAvatar).should("be.visible");
-        } else {
-          cy.get(divBacklogAssigneeAvatar).should("not.be.visible");
-        }
+        cy.get(listIssues)
+          .should("have.length", "5")
+          .first()
+          .find("p")
+          .contains(randomTitle)
+          .siblings()
+          .within(() => {
+            cy.get(avatarLordGaben).should("not.exist");
+            cy.get(iconTask).should("be.visible");
+          });
+      });
+
+    cy.get(listBackLog)
+      .contains(randomTitle)
+      .within(() => {
+        cy.get(avatarLordGaben).should("not.exist");
+        cy.get(iconTask).should("be.visible");
       });
   });
-}
+});
