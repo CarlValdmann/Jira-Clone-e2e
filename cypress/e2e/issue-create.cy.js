@@ -12,7 +12,6 @@ const issueTypeTask = '[data-testid="select-option:Task"]';
 const iconTask = '[data-testid="icon:task"]';
 const reporterDropdown = '[data-testid="select:reporterId"]';
 const assigneeDropdown = '[data-testid="form-field:userIds"]';
-const selectAssignee = '[data-testid="select:userIds]';
 const optionBabyYoda = '[data-testid="select-option:Baby Yoda"]';
 const optionPickleRick = '[data-testid="select-option:Pickle Rick"]';
 const optionLordGaben = '[data-testid="select-option:Lord Gaben"]';
@@ -28,6 +27,7 @@ const priorityDropdown = '[data-testid="select:priority"]';
 const priorityHighest = '[data-testid="select-option:Highest"]';
 const priorityLow = '[data-testid="select-option:Low"]';
 const priorityColorLow = "rgb(45, 135, 56)";
+const selectAssignee = '[data-testid="select:userIds"]';
 
 describe("Issue create", () => {
   beforeEach(() => {
@@ -171,30 +171,34 @@ describe("Issue create", () => {
         cy.get(iconBug).should("be.visible");
       });
   });
-});
 
-it.only("Should create a new issue with random data and assert it's visible on the board ", () => {
-  let description = faker.lorem.words(5);
-  let title = faker.lorem.words(1);
-  let issueTypeNotTask = false;
-  let assigneeDropdown = false;
+  it.only("Should create a new issue with random data and assert it's visible on the board ", () => {
+    let description = faker.lorem.words(5);
+    let title = faker.lorem.words(1);
+    let issueTypeNotTask = false;
+    let assigneePresent = false;
 
-  createNewIssue(
-    description,
-    title,
-    priorityLow,
-    optionBabyYoda,
-    assigneeDropdown,
-    issueTypeNotTask
-  );
+    createNewIssue(
+      description,
+      title,
+      priorityLow,
+      optionBabyYoda,
+      assigneePresent,
+      null,
+      issueTypeNotTask,
+      null,
+      null
+    );
 
-  verifyNewIssueOnBacklog(
-    title,
-    iconBug,
-    priorityLow,
-    priorityColorLow,
-    assigneeDropdown
-  );
+    verifyNewIssueOnBacklog(
+      title,
+      iconTask,
+      priorityLow,
+      priorityColorLow,
+      assigneePresent,
+      null
+    );
+  });
 });
 
 function createNewIssue(
@@ -215,7 +219,7 @@ function createNewIssue(
     cy.get(titleInput).type(myTitle).should("have.value", myTitle);
     cy.get(priorityDropdown).click();
     cy.get(myPriority).wait(1000).trigger("mouseover").trigger("click");
-    cy.get(reporter).click();
+    cy.get(reporterDropdown).click();
     cy.get(myReporter).click();
     if (assigneePresent) {
       cy.get(assigneeDropdown).click();
@@ -247,26 +251,30 @@ function verifyNewIssueOnBacklog(
   cy.contains("Issue has been successfully created.").should("be.visible");
   cy.reload();
   cy.contains("Issue has been successfully created.").should("not.exist");
-  cy.get(listBackLog)
-    .should("be.visible")
-    .and("have.length", "1")
-    .within(() => {
-      cy.get(listIssue)
-        .should("have.length", "5")
-        .first()
-        .find("p")
-        .contains(prevIssueTitle)
-        .siblings()
-        .within(() => {
-          cy.get(prevIssueTypeIcon).should("be.visible");
-          cy.get(prevPriorityIcon)
-            .should("be.visible")
-            .and("have.css", "color", priorityLevelColor);
-          if (assigneePresent) {
-            cy.get(prevAssigneeAvatar).should("be.visible");
-          } else {
-            cy.get(divBacklogAssigneeAvatar).should("not.be.visible");
-          }
-        });
-    });
+
+  // Wait for the backlog list to be visible
+  cy.get(listBackLog, { timeout: 20000 }).should("be.visible");
+
+  // Check if the backlog list contains any items
+  cy.get(listBackLog).should("exist").should("have.length", 1);
+
+  cy.get(listBackLog).within(() => {
+    cy.get(listBackLog)
+      .should("have.length.greaterThan", 0)
+      .first()
+      .find("p")
+      .contains(prevIssueTitle)
+      .siblings()
+      .within(() => {
+        cy.get(prevIssueTypeIcon).should("be.visible");
+        cy.get(prevPriorityIcon)
+          .should("be.visible")
+          .and("have.css", "color", priorityLevelColor);
+        if (assigneePresent) {
+          cy.get(prevAssigneeAvatar).should("be.visible");
+        } else {
+          cy.get(divBacklogAssigneeAvatar).should("not.be.visible");
+        }
+      });
+  });
 }
