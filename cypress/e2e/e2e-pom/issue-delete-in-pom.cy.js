@@ -22,7 +22,7 @@ describe("Issue delete", () => {
     IssueModal.ensureIssueIsNotVisibleOnBoard(issueTitle);
   });
 
-  it.only("Should cancel deletion process successfully", () => {
+  it("Should cancel deletion process successfully", () => {
     //add steps to start deletion proces but cancel it
     IssueModal.getIssueDetailModal().should("be.visible");
     IssueModal.clickDeleteButton();
