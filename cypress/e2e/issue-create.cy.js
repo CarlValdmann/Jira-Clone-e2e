@@ -29,7 +29,7 @@ const priorityLow = '[data-testid="select-option:Low"]';
 const priorityColorLow = "rgb(45, 135, 56)";
 const selectAssignee = '[data-testid="select:userIds"]';
 
-describe("Issue create", () => {
+describe("creating issues", () => {
   beforeEach(() => {
     cy.visit("/");
     cy.url()
