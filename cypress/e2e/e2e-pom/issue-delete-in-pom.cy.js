@@ -18,7 +18,6 @@ describe("Issue delete", () => {
     IssueModal.getIssueDetailModal().should("be.visible");
     IssueModal.clickDeleteButton();
     IssueModal.confirmDeletion();
-
     IssueModal.ensureIssueIsNotVisibleOnBoard(issueTitle);
   });
 
@@ -27,5 +26,6 @@ describe("Issue delete", () => {
     IssueModal.getIssueDetailModal().should("be.visible");
     IssueModal.clickDeleteButton();
     IssueModal.cancelDeletion();
+    IssueModal.ensureIssueIsVisibleOnBoard(issueTitle);
   });
 });
