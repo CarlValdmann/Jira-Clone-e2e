@@ -72,7 +72,7 @@ describe("Issue comments creating, editing and deleting", () => {
       .should("not.exist");
   });
 
-  it.only("Should create, edit and delete NEW comment successfully", () => {
+  it.only("Should create, edit and delete a NEW comment successfully", () => {
     let comment = faker.lorem.words(4);
 
     getIssueDetailsModal().within(() => {
