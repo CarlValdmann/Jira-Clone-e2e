@@ -11,16 +11,14 @@ describe("Time tracking tests", () => {
 
   const placeholder = '[placeholder="Number"]';
   const closeButton = '[data-testid="icon:close"]';
-  const trackingTab = () => cy.get('[data-testid="modal:tracking"]');
   const timeTrackingPreview = '[class="sc-rBLzX irwmBe"]';
   const timeTracking = '[data-testid="icon:stopwatch"]';
+  const trackingTab = () => cy.get('[data-testid="modal:tracking"]');
   const getIssueDetailsModal = () =>
     cy.get('[data-testid="modal:issue-details"]');
-
   const openIssueDetails = () => {
     cy.contains("This is an issue of type: Task.").click();
   };
-
   const closeIssueDetails = () => {
     cy.get(closeButton).first().click();
   };
@@ -34,7 +32,6 @@ describe("Time tracking tests", () => {
 
     openIssueDetails();
     cy.get(placeholder).first().should("have.value", "10", { timeout: 10000 });
-
     closeIssueDetails();
 
     openIssueDetails();
@@ -49,7 +46,6 @@ describe("Time tracking tests", () => {
     cy.wait(5000);
     cy.get(placeholder).first().should("have.value", "20");
     closeIssueDetails();
-
     openIssueDetails();
     cy.get(placeholder).first().should("have.value", "20").clear();
     cy.log("Cleared estimation");
