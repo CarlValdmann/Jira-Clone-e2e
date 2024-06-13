@@ -26,7 +26,6 @@ describe("Time tracking tests", () => {
   };
 
   it("Should be able to add, edit, and remove the estimation of an issue.", () => {
-    // Adding estimation
     getIssueDetailsModal().within(() => {
       cy.get(placeholder).first().clear().type("10");
       cy.log("Set estimation to 10");
@@ -38,7 +37,6 @@ describe("Time tracking tests", () => {
 
     closeIssueDetails();
 
-    // Editing estimation
     openIssueDetails();
     getIssueDetailsModal().within(() => {
       cy.get(placeholder).first().clear().type("20");
@@ -52,7 +50,6 @@ describe("Time tracking tests", () => {
     cy.get(placeholder).first().should("have.value", "20");
     closeIssueDetails();
 
-    // Deleting estimation
     openIssueDetails();
     cy.get(placeholder).first().should("have.value", "20").clear();
     cy.log("Cleared estimation");
@@ -60,7 +57,6 @@ describe("Time tracking tests", () => {
   });
 
   it("Should be able to log time and remove the logged time.", () => {
-    //Adding estimations
     cy.get(timeTracking).click();
     trackingTab().within(() => {
       cy.get(placeholder).first().clear().type("2");
@@ -71,7 +67,6 @@ describe("Time tracking tests", () => {
       cy.contains("button", "Done").click();
     });
 
-    // Asserting that the added estimation is added and visible
     getIssueDetailsModal().within(() => {
       cy.get(timeTrackingPreview).should("exist");
       cy.wait(5000);
@@ -80,13 +75,11 @@ describe("Time tracking tests", () => {
       closeIssueDetails();
     });
 
-    // Open timetracking
     openIssueDetails();
     getIssueDetailsModal().within(() => {
       cy.get(timeTracking).should("exist").click();
     });
 
-    // Removing the estimation
     trackingTab().within(() => {
       cy.get(placeholder).first().should("have.value", "2").clear();
       cy.log("Cleared estimation");
@@ -95,7 +88,6 @@ describe("Time tracking tests", () => {
       cy.contains("button", "Done").click();
     });
 
-    // Assert that the value is removed
     getIssueDetailsModal().within(() => {
       cy.get(timeTrackingPreview).should("exist");
       cy.wait(5000);
